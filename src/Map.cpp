@@ -1,12 +1,12 @@
 #include "Map.h"
 
 #include <SFML/Graphics.hpp>
+
 #include <string>
 #include <map>
 #include <vector>
 #include <fstream>
-
-#include <cassert>
+#include <algorithm>
 
 #include "Tile.h"
 
@@ -20,8 +20,52 @@ void Map::draw(sf::RenderWindow& window, float dt)
             pos.y = (x + y) * mTileSize * 0.5f;
 
             mTiles[y*mWidth + x].mSprite.setPosition(pos);
+
+            if(mSelected[y*mWidth+x])
+                mTiles[y*mWidth+x].mSprite.setColor(sf::Color(0x7d, 0x7d, 0x7d));
+            else
+                mTiles[y*mWidth+x].mSprite.setColor(sf::Color(0xff, 0xff, 0xff));
+
             mTiles[y*mWidth + x].draw(window, dt);
         }
+}
+
+void Map::select(sf::Vector2i start, sf::Vector2i end, std::vector<TileType> blacklist)
+{
+    if(end.y < start.y) std::swap(end.y, start.y);
+    if(end.x < start.x) std::swap(end.x, start.x);
+
+    if(end.x >= mWidth) end.x = mWidth-1;
+    else if(end.x < 0) end.x = 0;
+    if(end.y >= mHeight) end.y = mHeight-1;
+    else if(end.y < 0) end.y = 0;
+
+    if(start.x >= mWidth) start.x = mWidth-1;
+    else if(start.x < 0) start.x = 0;
+    if(start.y >= mHeight) start.y = mHeight-1;
+    else if(start.y < 0) start.y = 0;
+
+    for(int y = start.y; y < end.y; ++y)
+        for(int x = start.x; x < end.x; ++x)
+        {
+            mSelected[y*mWidth + x] = 1;
+            ++mNumSelected;
+
+            for(auto type : blacklist)
+                if(mTiles[y*mWidth + x].mTileType == type)
+                {
+                    mSelected[y*mWidth + x] = 2;
+                    --mNumSelected;
+                    break;
+                }
+        }
+}
+
+void Map::clearSelected()
+{
+    mNumSelected = 0;
+    for(auto& e : mSelected)
+        e = 0;
 }
 
 void Map::load(std::string const& filepath, unsigned int width, unsigned int height, std::map<std::string, Tile>const& tileAtlas)
@@ -35,6 +79,7 @@ void Map::load(std::string const& filepath, unsigned int width, unsigned int hei
     for(int pos = 0; pos < width*height; ++pos)
     {
         mResources.push_back(255);
+        mSelected.push_back(0);
 
         TileType tileType;
         inputFile.read(reinterpret_cast<char*>(&tileType), sizeof(int));

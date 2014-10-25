@@ -13,11 +13,18 @@ class Map
 {
     public:
 
-        Map() {}
+        Map() :
+            mNumSelected(0),
+            mTileSize(0),
+            mWidth(0),
+            mHeight(0),
+            mNumRegions{ {1} }
+        {}
         Map(const std::string& filename, unsigned int width, unsigned int height,
         std::map<std::string, Tile>const& tileAtlas) :
             mTiles(),
-            mTileSize(8)
+            mTileSize(8),
+            mNumSelected(0)
         {
             load(filename, width, height, tileAtlas);
         }
@@ -26,6 +33,11 @@ class Map
     public:
 
         void draw(sf::RenderWindow& window, float dt);
+
+    public:
+
+        void select(sf::Vector2i start, sf::Vector2i end, std::vector<TileType> blacklist);
+        void clearSelected();
 
     public:
 
@@ -46,10 +58,14 @@ class Map
 
     public:
 
+        std::vector<char> mSelected; // 0 = No, 1 = Yes, 2 = Invalid
+        unsigned int mNumSelected;
+
+    public:
+
         std::vector<int> mResources;
 
         unsigned int mTileSize;
-        unsigned int mNumSelected;
         unsigned int mNumRegions[1];
 
     private:

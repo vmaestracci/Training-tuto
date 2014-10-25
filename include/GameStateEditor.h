@@ -8,7 +8,7 @@
 
 #include "Map.h"
 
-enum class ActionState { NONE, PANNING };
+enum class ActionState { NONE, PANNING, SELECTING };
 
 class GameStateEditor : public GameState
 {
@@ -22,6 +22,11 @@ class GameStateEditor : public GameState
     private:
         Map mMap;
 
+        sf::Vector2i mSelectionStart;
+        sf::Vector2i mSelectionEnd;
+        Tile* mCurrentTile;
+
+    private:
         sf::View mGameView;
         sf::View mGuiView;
 
